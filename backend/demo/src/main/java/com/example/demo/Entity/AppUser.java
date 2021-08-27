@@ -29,6 +29,12 @@ public class AppUser {
 	private Long id;
 	
 	@Column(nullable=false)
+	private String username;
+	
+	@Column(nullable=false)
+	private String password;
+	
+	@Column(nullable=false)
 	private String firstname;
 	
 	@Column(nullable=false)
@@ -41,12 +47,6 @@ public class AppUser {
 	private Date dob;
 	
 	private String address;
-	
-	@Column(nullable=false)
-	private String username;
-	
-	@Column(nullable=false)
-	private String password;
 	
 	@ManyToMany(fetch = FetchType.EAGER) //EAGER will load all of the roles and user at the same time
 	@JoinColumn(name="role_id")
@@ -61,23 +61,24 @@ public class AppUser {
 		
 	}
 	
-	public AppUser (String firstname,
+	public AppUser (String username,
+					String password,
+					String firstname,
 				 	String lastname,
 				 	String email,
 				 	Date dob,
-				 	String address,
-				 	String username,
-				 	String password,
+				 	String address,	 	
 				 	Collection<Role> roles,
 				 	Date CREATED_DATE,
-				 	Date UPDATED_DATE){
+				 	Date UPDATED_DATE
+				 	){
+		this.username = username;
+		this.password = password;
 		this.firstname = firstname;
 		this.lastname = lastname;
 		this.email = email;
 		this.dob = dob;
 		this.address = address;
-		this.username = username;
-		this.password = password;
 		this.roles = roles;
 		this.CREATED_DATE = CREATED_DATE;
 		this.UPDATED_DATE = UPDATED_DATE;

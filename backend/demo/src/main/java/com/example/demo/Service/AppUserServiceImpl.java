@@ -1,9 +1,17 @@
 package com.example.demo.Service;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,7 +22,7 @@ import com.example.demo.Repository.RoleRepository;
 
 @Service
 @Transactional
-public class AppUserServiceImpl implements AppUserService{
+public class AppUserServiceImpl implements AppUserService, UserDetailsService{
 
 	@Autowired
 	private AppUserRepository appUserRepository;
@@ -22,12 +30,31 @@ public class AppUserServiceImpl implements AppUserService{
 	@Autowired
 	private RoleRepository roleRepository;
 	
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+	
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		AppUser user = appUserRepository.findByUsername(username).get();
+		
+		if (user == null) {
+			throw new UsernameNotFoundException("User does not exists!");
+		}
+		
+		Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
+		user.getRoles().forEach(role -> {
+			authorities.add(new SimpleGrantedAuthority(role.getName()));
+		});
+		return new User(user.getUsername(), user.getPassword(), authorities); //return spring security user
+	}
+	
 	@Override
 	public AppUser saveUser(AppUser userDetails) {
 		Optional<AppUser> user = appUserRepository.findByUsername(userDetails.getUsername());
 		if (user.isPresent()) {
 			throw new IllegalStateException("Username is already taken!");
 		}
+		userDetails.setPassword(passwordEncoder.encode(userDetails.getPassword()));
 		return appUserRepository.save(userDetails);
 	}
 
@@ -85,5 +112,4 @@ public class AppUserServiceImpl implements AppUserService{
 	public List<AppUser> getUsers() {
 		return appUserRepository.findAll();
 	}
-
 }
