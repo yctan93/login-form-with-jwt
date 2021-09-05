@@ -35,17 +35,17 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService{
 	
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		AppUser user = appUserRepository.findByUsername(username).get();
+		Optional<AppUser> user = appUserRepository.findByUsername(username);
 		
-		if (user == null) {
+		if (user.isEmpty()) {
 			throw new UsernameNotFoundException("User does not exists!");
 		}
 		
 		Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
-		user.getRoles().forEach(role -> {
+		user.get().getRoles().forEach(role -> {
 			authorities.add(new SimpleGrantedAuthority(role.getName()));
 		});
-		return new User(user.getUsername(), user.getPassword(), authorities); //return spring security user
+		return new User(user.get().getUsername(), user.get().getPassword(), authorities); //return spring security user
 	}
 	
 	@Override

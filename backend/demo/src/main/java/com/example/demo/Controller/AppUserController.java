@@ -1,6 +1,13 @@
 package com.example.demo.Controller;
 
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,12 +22,21 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.Entity.AppUser;
 import com.example.demo.Entity.Role;
 import com.example.demo.Service.AppUserService;
+import com.example.demo.filter.JwtConfig;
+import com.example.demo.filter.JwtUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping(path="/api")
 public class AppUserController {
 	@Autowired
 	private AppUserService appUserService;
+	
+	@Autowired
+	private JwtConfig jwtConfig;
+	
+	@Autowired
+	private JwtUtils jwtUtils;
 	
 	@GetMapping(path="/users")
 	public ResponseEntity<List<AppUser>> getUsers(){
@@ -51,25 +67,37 @@ public class AppUserController {
 		appUserService.removeRoleFromUser(form.getUsername(), form.getRoleName());
 		return new ResponseEntity<String> ("Role removed from user", HttpStatus.OK);
 	}
+	
+	@GetMapping(path="token/refresh")
+	public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException{
+		String authorizationHeader = request.getHeader(jwtConfig.getAuthorizationHeader());
+		if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+			try {
+				String refresh_token = authorizationHeader.substring("Bearer ".length());
+				
+				String username = jwtUtils.usernameFromToken(refresh_token);
+	
+				AppUser user = appUserService.getUser(username);
+				
+				Map<String, String> tokens = new HashMap<>();
+				tokens.put("access_token", jwtUtils.generateAccessToken(user));
+				tokens.put("refresh_token", refresh_token);
+				
+				response.setContentType("application/json");
+				new ObjectMapper().writeValue(response.getOutputStream(), tokens);
+								
+			} catch (Exception exception){
+				Map<String, String> error = new HashMap<>();
+				error.put("error_message", exception.getMessage());
+
+				response.setStatus(HttpStatus.FORBIDDEN.value());
+				response.setContentType("application/json");
+				new ObjectMapper().writeValue(response.getOutputStream(), error);
+			}
+		} else {
+			throw new RuntimeException("Refresh token is missing");
+		}
+	}
 }
 
-class RoleToUserForm {
-	private String username;
-	private String roleName;
-	
-	public String getUsername() {
-		return username;
-	}
-	
-	public void setUsername(String username) {
-		this.username = username;
-	}
-	
-	public String getRoleName() {
-		return roleName;
-	}
-	
-	public void setRoleName(String roleName) {
-		this.roleName = roleName;
-	}
-}
+

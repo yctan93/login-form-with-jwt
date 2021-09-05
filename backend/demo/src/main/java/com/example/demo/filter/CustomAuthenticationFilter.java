@@ -1,9 +1,8 @@
 package com.example.demo.filter;
 
 import java.io.IOException;
-import java.security.Key;
-import java.sql.Date;
-import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -20,17 +19,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
-
 public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFilter{
 
-	@Autowired
 	private AuthenticationManager authenticationMangager;
+	private JwtUtils jwtUtils;
 	
-	public CustomAuthenticationFilter(AuthenticationManager authenticationMangager) {
+	@Autowired
+	public CustomAuthenticationFilter(AuthenticationManager authenticationMangager, JwtUtils jwtUtils) {
 		this.authenticationMangager = authenticationMangager;
+		this.jwtUtils = jwtUtils;
 	}
 	
 	@Override
@@ -48,45 +45,13 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
 	@Override
 	protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
 		User user = (User) authResult.getPrincipal();
-		Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 		
-		String access_token = Jwts.builder()
-								  .setSubject(user.getUsername())
-								  .claim("roles", user.getAuthorities())
-								  .setIssuedAt(new Date(0))
-								  .setExpiration(Date.valueOf(LocalDate.now().plusDays(1)))
-								  .signWith(key)
-								  .compact();
+		// Sending the token through the response body in JSON format instead of header
+		Map<String, String> tokens = new HashMap<>();
+		tokens.put("access_token", jwtUtils.generateAccessToken(user));
+		tokens.put("refresh_token", jwtUtils.generateRefreshToken(user));
 		
-		String refresh_token = Jwts.builder()
-								   .setSubject(user.getUsername())
-								   .setIssuedAt(new Date(0))
-								   .setExpiration(Date.valueOf(LocalDate.now().plusWeeks(1)))
-								   .signWith(key)
-								   .compact();
-		
-		response.setHeader("access_token", access_token);
-		response.setHeader("refresh_token", refresh_token);
-	}
-}
-
-class UsernamePasswordAuthenticationRequest {
-	private String username;
-	private String password;
-	
-	public String getUsername(){
-		return username;
-	}
-	
-	public void setUsername(String username) {
-		this.username = username;
-	}
-	
-	public String getPassword(){
-		return password;
-	}
-	
-	public void setPassword(String password) {
-		this.password = password;
+		response.setContentType("application/json");
+		new ObjectMapper().writeValue(response.getOutputStream(), tokens);
 	}
 }
