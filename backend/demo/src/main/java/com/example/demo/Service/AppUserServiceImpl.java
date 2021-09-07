@@ -55,6 +55,8 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService{
 			throw new IllegalStateException("Username is already taken!");
 		}
 		userDetails.setPassword(passwordEncoder.encode(userDetails.getPassword()));
+		Role defaultRole = roleRepository.findByName("ROLE_USER").get();
+		userDetails.getRoles().add(defaultRole);
 		return appUserRepository.save(userDetails);
 	}
 
@@ -111,5 +113,43 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService{
 	@Override
 	public List<AppUser> getUsers() {
 		return appUserRepository.findAll();
+	}
+	
+	@Override
+	public AppUser updateUser(String username, AppUser userDetails) {
+		Optional<AppUser> user = appUserRepository.findByUsername(username);
+		if(user.isPresent()) {
+			AppUser updatedUser = user.get();
+			
+			if (userDetails.getPassword() != null && userDetails.getPassword().length() > 0) {
+				updatedUser.setPassword(userDetails.getPassword());
+			}
+			
+			if (userDetails.getFirstname() != null && userDetails.getFirstname().length() > 0) {
+				updatedUser.setFirstname(userDetails.getFirstname());
+			}
+			
+			if (userDetails.getLastname() != null && userDetails.getLastname().length() > 0) {
+				updatedUser.setLastname(userDetails.getLastname());
+			}
+			
+			if (userDetails.getEmail() != null && userDetails.getEmail().length() > 0) {
+				updatedUser.setEmail(userDetails.getEmail());
+			}
+			
+			if (userDetails.getDob() != null) {
+				updatedUser.setDob(userDetails.getDob());
+			}
+			
+			if (userDetails.getAddress() != null && userDetails.getAddress().length() > 0) {
+				updatedUser.setAddress(userDetails.getAddress());
+			}
+			
+			return appUserRepository.save(updatedUser); 
+		}
+		else {
+			throw new IllegalStateException("Username does not exists!");
+		}
+		
 	}
 }

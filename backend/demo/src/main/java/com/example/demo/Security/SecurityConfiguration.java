@@ -13,6 +13,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 import com.example.demo.filter.CustomAuthenticationFilter;
 import com.example.demo.filter.CustomAuthorizationFilter;
@@ -51,20 +52,19 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 		// Customize login url
 		customAuthenticationFilter.setFilterProcessesUrl("/api/login");
 		
-		http.csrf().disable()
-			.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-			.and()
-			.authorizeRequests().antMatchers("/api/login").permitAll()
-			.and()
-			.authorizeRequests().antMatchers(HttpMethod.GET,"/api/users/**").hasAnyAuthority("ROLE_USER")
-			.and()
-			.authorizeRequests().antMatchers(HttpMethod.GET,"/api/token/refresh").permitAll()
-			.and()
-			.authorizeRequests().antMatchers(HttpMethod.POST,"/api/user/save/**").hasAnyAuthority("ROLE_ADMIN")
-			.and()
-			.authorizeRequests().antMatchers("/api/role/**").hasAnyAuthority("ROLE_ADMIN")
-			.and()
-			.authorizeRequests().anyRequest().authenticated()
+		http.csrf()
+		  	.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()) 
+		  	.ignoringAntMatchers("/api/login")
+		  	.ignoringAntMatchers("/api/signup")
+		  	.and()
+		  	.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+		  	.and()
+		  	.authorizeRequests().antMatchers("/api/login").permitAll()
+								.antMatchers("/api/signup").permitAll()
+								.antMatchers(HttpMethod.POST,"/api/users/**").hasAnyAuthority("ROLE_ADMIN")
+								.antMatchers(HttpMethod.POST,"/api/token/refresh").permitAll()
+								.antMatchers("/api/role/**").hasAnyAuthority("ROLE_ADMIN")
+								.anyRequest().authenticated()
 			.and()
 			.addFilter(customAuthenticationFilter)
 			.addFilterBefore(customAuthorizationFilter, UsernamePasswordAuthenticationFilter.class); // Make sure this filter comes before any filter

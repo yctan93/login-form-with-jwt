@@ -12,4 +12,5 @@ public interface AppUserService {
 	void removeRoleFromUser(String username, String roleName);
 	AppUser getUser(String username);
 	List<AppUser> getUsers();
+	AppUser updateUser(String username, AppUser userDetails);
 }

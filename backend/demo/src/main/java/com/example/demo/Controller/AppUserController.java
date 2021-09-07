@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -38,15 +39,21 @@ public class AppUserController {
 	@Autowired
 	private JwtUtils jwtUtils;
 	
-	@GetMapping(path="/users")
+	@PostMapping(path="/users")
 	public ResponseEntity<List<AppUser>> getUsers(){
 		List<AppUser> allUsers = appUserService.getUsers();
 		return new ResponseEntity<List<AppUser>>(allUsers, HttpStatus.OK);
 	}
 	
-	@PostMapping(path="/user/save")
-	public ResponseEntity<AppUser> saveUser(@RequestBody AppUser user){
-		AppUser newUser = appUserService.saveUser(user);
+	@PostMapping(path="/user")
+	public ResponseEntity<AppUser> getUser(@RequestBody AppUser userDetails){
+		AppUser user = appUserService.getUser(userDetails.getUsername());
+		return new ResponseEntity<AppUser>(user, HttpStatus.OK);
+	}
+	
+	@PostMapping(path="/signup")
+	public ResponseEntity<AppUser> saveUser(@RequestBody AppUser userDetails){
+		AppUser newUser = appUserService.saveUser(userDetails);
 		return new ResponseEntity<AppUser>(newUser, HttpStatus.CREATED);
 	}
 	
@@ -62,13 +69,7 @@ public class AppUserController {
 		return new ResponseEntity<String> ("Role assigned to user", HttpStatus.OK);
 	}
 	
-	@DeleteMapping(path="/role/removefromuser")
-	public ResponseEntity<String> removeRoleFromUser(@RequestBody RoleToUserForm form){
-		appUserService.removeRoleFromUser(form.getUsername(), form.getRoleName());
-		return new ResponseEntity<String> ("Role removed from user", HttpStatus.OK);
-	}
-	
-	@GetMapping(path="token/refresh")
+	@PostMapping(path="token/refresh")
 	public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException{
 		String authorizationHeader = request.getHeader(jwtConfig.getAuthorizationHeader());
 		if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
@@ -98,6 +99,20 @@ public class AppUserController {
 			throw new RuntimeException("Refresh token is missing");
 		}
 	}
+	
+	@DeleteMapping(path="/role/removefromuser")
+	public ResponseEntity<String> removeRoleFromUser(@RequestBody RoleToUserForm form){
+		appUserService.removeRoleFromUser(form.getUsername(), form.getRoleName());
+		return new ResponseEntity<String> ("Role removed from user", HttpStatus.OK);
+	}
+	
+	@PutMapping(path="user/update")
+	public ResponseEntity<AppUser> updateUser(@RequestBody AppUser userDetails){
+		AppUser updatedUser = appUserService.updateUser(userDetails.getUsername(), userDetails);
+		return new ResponseEntity<AppUser> (updatedUser, HttpStatus.OK);
+	}
+	
+	
 }
 
 
