@@ -1,13 +1,11 @@
 import logo from './logo.svg';
 import './App.css';
-import LoginForm from './scripts/LoginForm';
-import SignUpForm from './scripts/SignUpForm';
+import ReactRouterSetup from './scripts/ReactRouterSetup';
 
 function App() {
   return (
     <div className="App">
-      {/* <LoginForm /> */}
-      <SignUpForm />
+      <ReactRouterSetup />
     </div>
   );
 }

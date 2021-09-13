@@ -1,5 +1,7 @@
 package com.example.demo.Security;
 
+import java.util.Arrays;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +16,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.example.demo.filter.CustomAuthenticationFilter;
 import com.example.demo.filter.CustomAuthorizationFilter;
@@ -52,8 +58,10 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 		// Customize login url
 		customAuthenticationFilter.setFilterProcessesUrl("/api/login");
 		
-		http.csrf()
-		  	.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()) 
+		http.cors()
+		  	.and()
+		  	.csrf()
+		  	.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
 		  	.ignoringAntMatchers("/api/login")
 		  	.ignoringAntMatchers("/api/signup")
 		  	.and()
@@ -76,4 +84,19 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 	public AuthenticationManager authenticationManagerBean() throws Exception {
 		return super.authenticationManagerBean();
 	}
+	
+	@Bean
+	CorsConfigurationSource corsConfigurationSource() {
+		CorsConfiguration config = new CorsConfiguration(); 
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		
+		config.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
+		config.setAllowCredentials(true);
+		config.setAllowedMethods(Arrays.asList("POST", "PUT", "DELETE"));
+		config.setAllowedHeaders(Arrays.asList("*"));
+
+		source.registerCorsConfiguration("/**", config);
+		return source;
+	}
+	
 }

@@ -1,4 +1,6 @@
 import React from 'react'
+import {useHistory} from 'react-router-dom'
+import axios from 'axios'
 
 const SignUpForm = () => {
     const [signupInfo, setSignupInfo] = React.useState({
@@ -10,6 +12,7 @@ const SignUpForm = () => {
                                                             dob:""
                                                         });
     const [confirmPassword, setConfirmPassword] = React.useState("");
+    const history = useHistory();
 
     const handleChange = event => {
         const name = event.target.name;
@@ -26,7 +29,7 @@ const SignUpForm = () => {
         }
     }
 
-    const handleSubmit = event => {
+    const handleSubmit = async event => {
         event.preventDefault();
 
         let isEmpty = false;
@@ -43,16 +46,11 @@ const SignUpForm = () => {
             if (signupInfo.password !== confirmPassword){
                 console.log("Password is not the same!");
             } else {
-                console.log('Sign up!');
-                setSignupInfo({
-                                username:"",
-                                password:"",
-                                firstname:"",
-                                lastname:"",
-                                email:"",
-                                dob:""
-                              });
+                const response = await axios.post("http://localhost:8080/api/signup", signupInfo);
+                console.log(response);
                 setConfirmPassword("");
+                setSignupInfo({username:"", password:"", firstname:"", lastname:"", email:"", dob:""});
+                
             }
         }   
     }
@@ -77,6 +75,7 @@ const SignUpForm = () => {
                 <input 
                     type = "password"
                     name = "password_confirmation"
+                    value = {confirmPassword}
                     onChange = {handleChange}
                     placeholder = "Confirm Password"
                 />
@@ -106,10 +105,10 @@ const SignUpForm = () => {
                     name = "dob"
                     value = {signupInfo.dob}
                     onChange = {handleChange}
-                    placeholder = "DD-MM-YYYY"
+                    placeholder = "YYYY-MM-DD"
                 />
                 <button type="submit">Sign Up</button>
-                <button type="button">Cancel</button>
+                <button type="button" onClick={() => history.push("/")}>Cancel</button>
             </form>
         </div>
     )
