@@ -1,9 +1,9 @@
 import React from 'react'
-import {useHistory} from 'react-router-dom'
+import { useHistory } from 'react-router-dom'
 import axios from 'axios'
-import Cookies from 'js-cookie'
 
 axios.defaults.withCredentials = true;
+axios.defaults.xsrfHeaderName = "X-XSRF-TOKEN";
 
 const LoginForm = () => {
     const [loginInfo, setLoginInfo] = React.useState({username:"", password:""});
@@ -27,17 +27,19 @@ const LoginForm = () => {
         }
 
         if (!isEmpty){
-            console.log("Sign in");
             const response = await axios.post("http://localhost:8080/api/login", loginInfo);
-            console.log(response);
-            console.log("CSRF token: ", Cookies.get("XSRF-TOKEN"));
-            console.log("Access token: ", response.data.access_token);
-            console.log("Refresh token: ", response.data.refresh_token);
 
+            if (response.status === 200){
+                const authInfo = {username:loginInfo.username, accessToken: response.data.access_token, refreshToken: response.data.refresh_token};
+                localStorage.setItem("authInfo", JSON.stringify(authInfo));
+                setLoginInfo({username:"", password:""});
+                history.push("/homepage");
+            }
         } else{
             console.log("Empty fields");
+            setLoginInfo({username:"", password:""});
         }
-        setLoginInfo({username:"", password:""});
+        
     }
     
     return (
