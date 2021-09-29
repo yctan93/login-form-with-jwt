@@ -27,14 +27,17 @@ const LoginForm = () => {
         }
 
         if (!isEmpty){
-            const response = await axios.post("http://localhost:8080/api/login", loginInfo);
-
-            if (response.status === 200){
-                const authInfo = {username:loginInfo.username, accessToken: response.data.access_token, refreshToken: response.data.refresh_token};
-                localStorage.setItem("authInfo", JSON.stringify(authInfo));
-                setLoginInfo({username:"", password:""});
-                history.push("/homepage");
-            }
+            await axios.post("http://localhost:8080/api/login", loginInfo)
+                       .then(res => {
+                            const authInfo = {username:loginInfo.username, accessToken: res.data.access_token, refreshToken: res.data.refresh_token};
+                            localStorage.setItem("authInfo", JSON.stringify(authInfo));
+                            setLoginInfo({username:"", password:""});
+                            history.push("/homepage");
+                       })
+                       .catch(error => {
+                           console.log(error);
+                           setLoginInfo({username:"", password:""});
+                       });
         } else{
             console.log("Empty fields");
             setLoginInfo({username:"", password:""});

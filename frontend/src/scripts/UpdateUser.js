@@ -3,9 +3,13 @@ import { useLocation } from 'react-router'
 import { useHistory } from 'react-router'
 import axios from 'axios'
 
+import { RefreshTokenContext } from './ReactRouterSetup'
+
 const UpdateUser = () => {
     const location = useLocation();
     const history = useHistory();
+    const [authInfo, setAuthInfo] = React.useState(JSON.parse(localStorage.getItem("authInfo")));
+    const {getNewAccessToken} = React.useContext(RefreshTokenContext);
     const [updateInfo, setUpdateInfo] = React.useState({
                                                             firstname:location.state.firstname,
                                                             lastname:location.state.lastname,
@@ -13,8 +17,8 @@ const UpdateUser = () => {
                                                             dob:location.state.dob,
                                                             address:location.state.address
                                                         });
-    const AuthInfo = JSON.parse(localStorage.getItem("authInfo"));
-    
+    const saveButtonRef = React.useRef();
+
     const handleChange = event => {
         const name = event.target.name;
         const value = event.target.value;
@@ -27,11 +31,19 @@ const UpdateUser = () => {
         const config = {
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${AuthInfo.accessToken}`
+                "Authorization": `Bearer ${authInfo.accessToken}`
             }
         }
-        const response = await axios.put("http://localhost:8080/api/user/update", {...updateInfo, "username":AuthInfo.username}, config);
-        console.log(response)
+        
+        await axios.put("http://localhost:8080/api/user/update", {...updateInfo, "username":authInfo.username}, config)
+                   .then(res => console.log(res))
+                   .catch(error => {
+                        if(String(error.response.data.error_message).includes("expired")){
+                            getNewAccessToken(authInfo);
+                            setAuthInfo(JSON.parse(localStorage.getItem("authInfo")));
+                            saveButtonRef.current.click();
+                        }
+                    }); 
     }
 
     return (
@@ -72,7 +84,7 @@ const UpdateUser = () => {
                     onChange = {handleChange}
                     placeholder = "Address"
                 />
-                <button type="submit">Save</button>
+                <button type="submit" ref={saveButtonRef}>Save</button>
                 <button type="button" onClick={() => history.push("/homepage")}>Cancel</button>
             </form>
         </div>
