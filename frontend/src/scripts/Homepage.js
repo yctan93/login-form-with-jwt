@@ -17,7 +17,12 @@ const Homepage = () => {
                             }
                         }
         await axios.post("http://localhost:8080/api/user", {"username":authInfo.username}, config)
-                   .then(res => history.push("/update", res.data))
+                   .then(res => {
+                        if (res.data.address == null){
+                            res.data.address = "";
+                        }
+                        history.push("/update", res.data)
+                    })
                    .catch(error => {
                         if(String(error.response.data.error_message).includes("expired")){
                             getNewAccessToken(authInfo);
@@ -33,10 +38,13 @@ const Homepage = () => {
     }
 
     return (
-        <div>
-            <h1>Homepage</h1>
-            <button type="button" ref={updateButtonRef} onClick={handleUpdate}>Update User</button>
-            <button type="button" onClick={handleLogout}>Logout</button>
+        <div className="dashboard">
+            <h1>Dashboard</h1>
+            <div>
+                <button type="button" className=".btn" ref={updateButtonRef} onClick={handleUpdate}>Update Particulars</button>
+                <button type="button" className=".btn" ref={updateButtonRef} onClick={() => history.push("/passwordChange")}>Change New Password</button>
+                <button type="button" className=".btn" onClick={handleLogout}>Logout</button>
+            </div>
         </div>
     )
 }

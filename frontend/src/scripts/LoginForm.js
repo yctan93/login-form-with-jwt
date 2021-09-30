@@ -7,6 +7,7 @@ axios.defaults.xsrfHeaderName = "X-XSRF-TOKEN";
 
 const LoginForm = () => {
     const [loginInfo, setLoginInfo] = React.useState({username:"", password:""});
+    const [modal, setModal] = React.useState({message:"Please Sign In", isError: false});
     const history = useHistory();
     
     const handleChange = event => {
@@ -35,7 +36,7 @@ const LoginForm = () => {
                             history.push("/homepage");
                        })
                        .catch(error => {
-                           console.log(error);
+                           setModal({message:"Invalid username/password", isError:true});
                            setLoginInfo({username:"", password:""});
                        });
         } else{
@@ -46,8 +47,10 @@ const LoginForm = () => {
     }
     
     return (
-        <div>
+        <div className="container">
             <form onSubmit={handleSubmit}>
+                <h1>Welcome!</h1>
+                <p className={modal.isError ? "error": ""}>{modal.message}</p>
                 <input type="text"
                        name="username"
                        value={loginInfo.username}
@@ -60,8 +63,8 @@ const LoginForm = () => {
                        onChange={handleChange}
                        placeholder="Password"
                 />
-                <button type="submit">Sign in</button>
-                <button type="button" onClick={() => history.push("/signup")}>Sign up</button>
+                <button type="submit" className="btn">Sign in</button>
+                <button type="button" className="btn" onClick={() => history.push("/signup")}>Create New Account</button>
             </form>
         </div>
     )

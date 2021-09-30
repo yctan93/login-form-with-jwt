@@ -8,6 +8,7 @@ import LoginForm from './LoginForm'
 import SignUpForm from './SignUpForm'
 import Homepage from './Homepage'
 import UpdateUser from './UpdateUser'
+import PasswordChange from './PasswordChange'
 
 export const RefreshTokenContext = React.createContext();
 
@@ -41,6 +42,7 @@ const ReactRouterSetup = () => {
                             <Route exact path = "/signup"><SignUpForm /></Route>
                             <Route exact path = "/homepage"><Homepage /></Route>
                             <Route exact path = "/update"><UpdateUser /></Route>
+                            <Route exact path = "/passwordChange"><PasswordChange /></Route>
                     </Switch>
                 </Router>
             </CookiesProvider>

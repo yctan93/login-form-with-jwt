@@ -12,6 +12,7 @@ const SignUpForm = () => {
                                                             dob:""
                                                         });
     const [confirmPassword, setConfirmPassword] = React.useState("");
+    const [modal, setModal] = React.useState({message:"Please fill up all the fields", isError: false});
     const history = useHistory();
 
     const handleChange = event => {
@@ -23,9 +24,6 @@ const SignUpForm = () => {
         }
         else {
             setConfirmPassword(value);
-        }
-        if (signupInfo.password !== confirmPassword){
-            console.log("Password is not the same!")
         }
     }
 
@@ -41,23 +39,31 @@ const SignUpForm = () => {
         }
 
         if (isEmpty){
-            console.log('Empty fields!');
+            setModal({message:"There are empty fields", isError: true});
         } else {
             if (signupInfo.password !== confirmPassword){
-                console.log("Password is not the same!");
+                setModal({message:"Password is not the same!", isError: true});
             } else {
-                const response = await axios.post("http://localhost:8080/api/signup", signupInfo);
-                console.log(response);
-                setConfirmPassword("");
-                setSignupInfo({username:"", password:"", firstname:"", lastname:"", email:"", dob:""});
-                
+                await axios.post("http://localhost:8080/api/signup", signupInfo)
+                           .then(res => {
+                               setConfirmPassword("");
+                               setSignupInfo({username:"", password:"", firstname:"", lastname:"", email:"", dob:""});
+                               setModal({message: "Signup successful!", isError:false}) 
+                           })
+                           .catch(error => {
+                               if(String(error.response.data.message).includes("ERROR_USER_TAKEN")){
+                                    setModal({message: "Username is already taken!", isError:true});
+                                }
+                           })
             }
         }   
     }
 
     return (
-        <div>
+        <div className="container signup">
             <form onSubmit={handleSubmit}>
+                <h1>Sign Up</h1>
+                <p className={modal.isError? "error" : ""}>{modal.message}</p>
                 <input 
                     type = "text"
                     name = "username"

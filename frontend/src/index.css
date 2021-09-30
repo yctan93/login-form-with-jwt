@@ -1,13 +1,89 @@
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
+}
+
+.container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border: 1px solid black;
+  width: 400px;
+  height: 300px;
+  margin-left: -200px;
+  margin-top: -150px;
+}
+
+.signup {
+  height: 500px;
+  margin-top: -250px;
+}
+
+.update-form {
+  height: 450px;
+  margin-top: -225px;
+}
+
+.password-change {
+  height: 300px;
+  margin-top: -150px;
+}
+
+.container form {
+  display: flex;
+  flex-direction: column;
+}
+
+.container form h1 {
+  margin: 1rem 0 0 0;
+}
+
+.container form p {
+  margin: 0.5rem 0 1rem 0;
+  font-size: 12px;
+}
+
+.error {
+  color: red;
+}
+
+.container form input,
+button,
+textarea {
+  margin: 0.25rem 10%;
+  height: 2rem;
+}
+
+input {
+  border: 1px solid black;
+}
+
+textarea {
+  resize: none;
+  height: 4rem;
+}
+
+.btn {
+  border-radius: 4px;
+}
+
+.dashboard h1 {
+  margin: 0rem;
+  padding: 2rem 0;
+  border: 1px solid black;
+}
+
+.dashboard div {
+  display: flex;
+  flex-direction: column;
+  margin: 10% 20%;
 }

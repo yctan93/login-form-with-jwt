@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,7 +39,7 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService{
 		Optional<AppUser> user = appUserRepository.findByUsername(username);
 		
 		if (user.isEmpty()) {
-			throw new UsernameNotFoundException("User does not exists!");
+			throw new UsernameNotFoundException("ERROR_INVALID_USER");
 		}
 		
 		Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
@@ -52,7 +53,7 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService{
 	public AppUser saveUser(AppUser userDetails) {
 		Optional<AppUser> user = appUserRepository.findByUsername(userDetails.getUsername());
 		if (user.isPresent()) {
-			throw new IllegalStateException("Username is already taken!");
+			throw new IllegalStateException("ERROR_USER_TAKEN");
 		}
 		userDetails.setPassword(passwordEncoder.encode(userDetails.getPassword()));
 		Role defaultRole = roleRepository.findByName("ROLE_USER").get();
@@ -74,11 +75,11 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService{
 				user.get().getRoles().add(role.get());
 			}
 			else {
-				throw new IllegalStateException("Invalid role!");
+				throw new IllegalStateException("ERROR_INVALID_ROLE");
 			}
 		}
 		else {
-			throw new IllegalStateException("Username does not exists!");
+			throw new IllegalStateException("ERROR_INVALID_USER");
 		}
 	}
 	
@@ -91,11 +92,11 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService{
 				user.get().getRoles().remove(role.get());
 			}
 			else {
-				throw new IllegalStateException("Role does not exists!");
+				throw new IllegalStateException("ERROR_INVALID_ROLE");
 			}
 		}
 		else {
-			throw new IllegalStateException("Username does not exists!");
+			throw new IllegalStateException("ERROR_INVALID_USER");
 		}
 	}
 
@@ -106,7 +107,7 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService{
 			return user.get();
 		}
 		else {
-			throw new IllegalStateException("Username does not exists!");
+			throw new IllegalStateException("ERROR_INVALID_USER");
 		}
 	}
 
@@ -122,7 +123,13 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService{
 			AppUser updatedUser = user.get();
 			
 			if (userDetails.getPassword() != null && userDetails.getPassword().length() > 0) {
-				updatedUser.setPassword(userDetails.getPassword());
+				BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder();  
+				boolean isPasswordMatches = bcrypt.matches(userDetails.getPassword(), updatedUser.getPassword());
+				if (!isPasswordMatches) {
+					updatedUser.setPassword(passwordEncoder.encode(userDetails.getPassword()));
+				} else {
+					throw new IllegalStateException("ERROR_SAME_PASSWORD");
+				}
 			}
 			
 			if (userDetails.getFirstname() != null && userDetails.getFirstname().length() > 0) {
@@ -148,7 +155,7 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService{
 			return appUserRepository.save(updatedUser); 
 		}
 		else {
-			throw new IllegalStateException("Username does not exists!");
+			throw new IllegalStateException("ERROR_INVALID_USER");
 		}
 		
 	}

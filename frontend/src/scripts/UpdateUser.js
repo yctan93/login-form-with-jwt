@@ -17,6 +17,7 @@ const UpdateUser = () => {
                                                             dob:location.state.dob,
                                                             address:location.state.address
                                                         });
+    const [modal, setModal] = React.useState({message:"Please ensure there are no missing fields", isError: false});
     const saveButtonRef = React.useRef();
 
     const handleChange = event => {
@@ -28,27 +29,41 @@ const UpdateUser = () => {
 
     const handleSubmit = async event => {
         event.preventDefault();
-        const config = {
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${authInfo.accessToken}`
+
+        let isEmpty = false;
+
+        for (const property in updateInfo){
+            if (updateInfo[property] === ""){
+                isEmpty = true;
             }
         }
-        
-        await axios.put("http://localhost:8080/api/user/update", {...updateInfo, "username":authInfo.username}, config)
-                   .then(res => console.log(res))
-                   .catch(error => {
-                        if(String(error.response.data.error_message).includes("expired")){
-                            getNewAccessToken(authInfo);
-                            setAuthInfo(JSON.parse(localStorage.getItem("authInfo")));
-                            saveButtonRef.current.click();
-                        }
-                    }); 
+        if (isEmpty){
+            setModal({message:"There are empty fields", isError: true});
+        } else {
+            const config = {
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${authInfo.accessToken}`
+                }
+            }
+            
+            await axios.put("http://localhost:8080/api/user/update", {...updateInfo, "username":authInfo.username}, config)
+                    .then(res => setModal({message: "Particulars updated successfully!", isError: false}))
+                    .catch(error => {
+                            if(String(error.response.data.error_message).includes("expired")){
+                                getNewAccessToken(authInfo);
+                                setAuthInfo(JSON.parse(localStorage.getItem("authInfo")));
+                                saveButtonRef.current.click();
+                            }
+                        }); 
+        }
     }
 
     return (
-        <div>
-            <form onSubmit={handleSubmit}>              
+        <div className="container update-form">
+            <form onSubmit={handleSubmit}>
+                <h1>Update Particulars</h1>
+                <p className={modal.isError? "error": ""}>{modal.message}</p>             
                 <input 
                     type = "text"
                     name = "firstname"
@@ -79,7 +94,7 @@ const UpdateUser = () => {
                 />
                 <textarea 
                     type = "text"
-                    name = "dob"
+                    name = "address"
                     value = {updateInfo.address}
                     onChange = {handleChange}
                     placeholder = "Address"
